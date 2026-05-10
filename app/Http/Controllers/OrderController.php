@@ -70,6 +70,7 @@ class OrderController extends Controller
         // Create order
         $order = Order::create([
             'user_id' => $user->id,
+            'invoice_number' => 'INV-' . strtoupper(uniqid()),
             'total_price' => $totalPrice,
             'status' => 'pending',
             'payment_method' => $validated['payment_method'],

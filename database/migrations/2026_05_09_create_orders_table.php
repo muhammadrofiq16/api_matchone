@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('invoice_number')->unique();
             $table->decimal('total_price', 12, 2);
             $table->string('status')->default('pending'); // pending, paid, processing, completed, cancelled
             $table->string('payment_method');
