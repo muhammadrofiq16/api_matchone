@@ -41,17 +41,17 @@
         </div>
     </div>
 
-    <div class="bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl shadow-lg p-6 transform hover:scale-105 transition duration-300">
+    <a href="{{ route('admin.orders.index') }}" class="block bg-gradient-to-r from-orange-400 to-red-500 rounded-2xl shadow-lg p-6 transform hover:scale-105 transition duration-300">
         <div class="flex justify-between items-center text-white">
             <div>
                 <p class="text-orange-100 text-sm font-semibold uppercase tracking-wider mb-1">Pesanan Aktif</p>
-                <h3 class="text-4xl font-bold">0</h3>
+                <h3 class="text-4xl font-bold">{{ $activeOrders }}</h3>
             </div>
             <div class="p-3 bg-white/20 rounded-xl">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
             </div>
         </div>
-    </div>
+    </a>
 
 </div>
 
@@ -111,18 +111,19 @@
                     <p class="text-sm text-gray-600">Sanctum Auth: <span class="font-semibold text-green-600">Active</span></p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <p class="text-sm text-gray-600">Order System: <span class="font-semibold text-yellow-600">Pending Setup</span></p>
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <p class="text-sm text-gray-600">Order System: <span class="font-semibold text-green-600">Active</span></p>
                 </div>
             </div>
         </div>
         
         <div class="mt-8 pt-6 border-t border-gray-100">
             <h4 class="text-sm font-bold text-gray-800 mb-2">Tindakan Cepat</h4>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-3 mb-3">
                 <a href="{{ route('admin.products.create') }}" class="text-center py-2 bg-green-50 text-green-700 rounded-lg text-sm font-semibold hover:bg-green-100 transition">+ Produk</a>
                 <a href="{{ route('admin.categories.index') }}" class="text-center py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-100 transition">+ Kategori</a>
             </div>
+            <a href="{{ route('admin.orders.index') }}" class="block text-center py-2 bg-orange-50 text-orange-700 rounded-lg text-sm font-semibold hover:bg-orange-100 transition">📋 Kelola Pesanan</a>
         </div>
     </div>
 

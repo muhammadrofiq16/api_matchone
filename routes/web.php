@@ -5,6 +5,8 @@ use App\Http\Controllers\Web\AdminController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\UserController;
+// Tambahan import untuk Order Controller khusus Admin
+use App\Http\Controllers\Web\AdminOrderController; 
 
 /*
 |--------------------------------------------------------------------------
@@ -38,5 +40,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::resource('users', UserController::class);
+    
+    // Manajemen Pesanan via Web Admin
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
     
 });
