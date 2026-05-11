@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemController;
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -31,6 +32,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
     
+    // Order Items routes
+    Route::get('/orders/{orderId}/items', [OrderItemController::class, 'index']);
+    Route::post('/orders/{orderId}/items', [OrderItemController::class, 'store']);
+    Route::get('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'show']);
+    Route::put('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'update']);
+    Route::delete('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'destroy']);
+    
     // Admin-only routes
     Route::middleware('admin')->group(function () {
         // Category management
@@ -46,5 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Order management (admin only)
         Route::put('/orders/{id}', [OrderController::class, 'update']);
+        
+        // Order Items management (admin only)
+        Route::get('/order-items', [OrderItemController::class, 'allItems']);
     });
 });
