@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
+use App\Http\Controllers\CartController;
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -26,26 +27,34 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/profile', [AuthController::class, 'profile']);
     Route::put('/auth/profile', [AuthController::class, 'update']);
 
+    // Cart routes
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/{id}', [CartController::class, 'update']);
+    Route::delete('/cart/{id}', [CartController::class, 'destroy']);
+    Route::delete('/cart', [CartController::class, 'clear']);
+    Route::get('/cart/summary', [CartController::class, 'summary']);
+
     // Order routes
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::put('/orders/{order}', [OrderController::class, 'update']);
     Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
-    
+
     // Order routes (all authenticated users can view their own orders)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
-    
+
     // Order Items routes
     Route::get('/orders/{orderId}/items', [OrderItemController::class, 'index']);
     Route::post('/orders/{orderId}/items', [OrderItemController::class, 'store']);
     Route::get('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'show']);
     Route::put('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'update']);
     Route::delete('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'destroy']);
-    
+
     // Admin-only routes
     Route::middleware('admin')->group(function () {
         // Category management
@@ -58,10 +67,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
         Route::patch('/products/{id}/toggle-availability', [ProductController::class, 'toggleAvailability']);
-        
+
         // Order management (admin only)
         Route::put('/orders/{id}', [OrderController::class, 'update']);
-        
+
         // Order Items management (admin only)
         Route::get('/order-items', [OrderItemController::class, 'allItems']);
     });
