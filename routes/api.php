@@ -25,6 +25,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/profile', [AuthController::class, 'profile']);
     Route::put('/auth/profile', [AuthController::class, 'update']);
+
+    // Order routes
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::put('/orders/{order}', [OrderController::class, 'update']);
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
     
     // Order routes (all authenticated users can view their own orders)
     Route::get('/orders', [OrderController::class, 'index']);

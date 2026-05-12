@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Category;
 
 class Product extends Model
 {
@@ -16,17 +17,13 @@ class Product extends Model
         'is_available',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'is_available' => 'boolean',
-            'price' => 'decimal:2',
-        ];
-    }
+    protected $casts = [
+        'price' => 'decimal:2',
+        'is_available' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
-    /**
-     * Get the category that owns the product.
-     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
