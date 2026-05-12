@@ -3,179 +3,170 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
     /**
-     * Display a listing of orders for the authenticated user.
+     * Get all orders (Admin) or user's orders (Customer)
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
-        $user = $request->user();
+        /** @var User $user */
+        $user = Auth::user();
+        $query = Order::with('user');
 
-        $orders = Order::where('user_id', $user->id)
-            ->with('items.product')
-            ->latest()
-            ->paginate(15);
+        // If user is not admin, only show their orders
+        if (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        // Filter by status
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by payment method
+        if ($request->has('payment_method')) {
+            $query->where('payment_method', $request->payment_method);
+        }
+
+        // Sort by latest first
+        $orders = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
-            'success' => true,
-            'data' => $orders,
-        ]);
+            'message' => 'Orders retrieved successfully',
+            'data' => $orders
+        ], 200);
     }
 
     /**
-     * Store a newly created order in storage.
+     * Create a new order (Customer)
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
-        $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.qty' => 'required|integer|min:1',
-            'payment_method' => 'required|string',
-            'notes' => 'nullable|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'invoice_number' => 'required|string|unique:orders',
+                'total_price' => 'required|numeric|min:0',
+                'status' => 'required|in:pending,paid,processing,completed,cancelled',
+                'payment_method' => 'required|string|max:255',
+            ]);
 
-        $user = $request->user();
-        $totalPrice = 0;
-        $itemsData = [];
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'invoice_number' => $validated['invoice_number'],
+                'total_price' => $validated['total_price'],
+                'status' => $validated['status'],
+                'payment_method' => $validated['payment_method'],
+            ]);
 
-        // Validate and prepare items
-        foreach ($validated['items'] as $item) {
-            $product = Product::findOrFail($item['product_id']);
+            return response()->json([
+                'message' => 'Order created successfully',
+                'data' => $order->load('user')
+            ], 201);
 
-            if (!$product->is_available) {
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
+    }
+
+    /**
+     * Get a single order
+     */
+    public function show($id)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $order = Order::with('user')->find($id);
+
+        if (!$order) {
+            return response()->json([
+                'message' => 'Order not found'
+            ], 404);
+        }
+
+        // Check authorization: users can only see their own orders, admins can see all
+        if (!$user->isAdmin() && $order->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'Unauthorized to access this order'
+            ], 403);
+        }
+
+        return response()->json([
+            'message' => 'Order retrieved successfully',
+            'data' => $order
+        ], 200);
+    }
+
+    /**
+     * Update an order status (Admin only)
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $order = Order::find($id);
+
+            if (!$order) {
                 return response()->json([
-                    'success' => false,
-                    'message' => "Produk {$product->name} tidak tersedia",
-                ], 400);
+                    'message' => 'Order not found'
+                ], 404);
             }
 
-            $subtotal = $product->price * $item['qty'];
-            $totalPrice += $subtotal;
-
-            $itemsData[] = [
-                'product_id' => $product->id,
-                'qty' => $item['qty'],
-                'price_at_purchase' => $product->price,
-                'subtotal' => $subtotal,
-            ];
-        }
-
-        // Create order
-        $order = Order::create([
-            'user_id' => $user->id,
-            'invoice_number' => 'INV-' . strtoupper(uniqid()),
-            'total_price' => $totalPrice,
-            'status' => 'pending',
-            'payment_method' => $validated['payment_method'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        // Create order items
-        foreach ($itemsData as $itemData) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                ...$itemData,
+            $validated = $request->validate([
+                'status' => 'required|in:pending,paid,processing,completed,cancelled',
+                'payment_method' => 'sometimes|required|string|max:255',
+                'total_price' => 'sometimes|required|numeric|min:0',
             ]);
+
+            $order->update($validated);
+
+            return response()->json([
+                'message' => 'Order updated successfully',
+                'data' => $order->load('user')
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         }
-
-        $order->load('items.product');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Order berhasil dibuat',
-            'data' => $order,
-        ], 201);
     }
 
     /**
-     * Display the specified order.
+     * Cancel an order (Admin or Order Owner)
      */
-    public function show(Request $request, Order $order): JsonResponse
+    public function destroy($id)
     {
-        $user = $request->user();
+        /** @var User $user */
+        $user = Auth::user();
+        $order = Order::find($id);
 
-        // Check if order belongs to user or user is admin
-        if ($order->user_id !== $user->id && $user->role !== 'admin') {
+        if (!$order) {
             return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 403);
+                'message' => 'Order not found'
+            ], 404);
         }
 
-        $order->load('items.product', 'user');
-
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-        ]);
-    }
-
-    /**
-     * Update the specified order.
-     */
-    public function update(Request $request, Order $order): JsonResponse
-    {
-        $user = $request->user();
-
-        // Only admin can update order status
-        if ($user->role !== 'admin') {
+        // Check authorization
+        if (!$user->isAdmin() && $order->user_id !== $user->id) {
             return response()->json([
-                'success' => false,
-                'message' => 'Hanya admin yang dapat mengupdate order',
+                'message' => 'Unauthorized to delete this order'
             ], 403);
-        }
-
-        $validated = $request->validate([
-            'status' => 'sometimes|string|in:pending,paid,processing,completed,cancelled',
-            'notes' => 'nullable|string',
-        ]);
-
-        $order->update($validated);
-
-        $order->load('items.product');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Order berhasil diupdate',
-            'data' => $order,
-        ]);
-    }
-
-    /**
-     * Remove the specified order.
-     */
-    public function destroy(Request $request, Order $order): JsonResponse
-    {
-        $user = $request->user();
-
-        // Only owner or admin can delete
-        if ($order->user_id !== $user->id && $user->role !== 'admin') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 403);
-        }
-
-        // Only pending orders can be deleted
-        if ($order->status !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya order dengan status pending yang dapat dihapus',
-            ], 400);
         }
 
         $order->delete();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Order berhasil dihapus',
-        ]);
+            'message' => 'Order deleted successfully'
+        ], 200);
     }
 }
+

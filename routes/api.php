@@ -32,6 +32,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/orders/{order}', [OrderController::class, 'update']);
     Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
     
+    // Order routes (all authenticated users can view their own orders)
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+    
     // Admin-only routes
     Route::middleware('admin')->group(function () {
         // Category management
@@ -44,5 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/products/{id}', [ProductController::class, 'update']);
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
         Route::patch('/products/{id}/toggle-availability', [ProductController::class, 'toggleAvailability']);
+        
+        // Order management (admin only)
+        Route::put('/orders/{id}', [OrderController::class, 'update']);
     });
 });
