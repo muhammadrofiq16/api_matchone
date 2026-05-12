@@ -10,19 +10,20 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
-        'qty',
-        'price_at_purchase',
+        'quantity',
+        'price',
         'subtotal',
-        'notes',
     ];
 
-    protected $casts = [
-        'qty' => 'integer',
-        'price_at_purchase' => 'decimal:2',
-        'subtotal' => 'decimal:2',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+            'subtotal' => 'decimal:2',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
 
     /**
      * Get the order that owns the order item.
@@ -33,7 +34,7 @@ class OrderItem extends Model
     }
 
     /**
-     * Get the product associated with the order item.
+     * Get the product that owns the order item.
      */
     public function product(): BelongsTo
     {
