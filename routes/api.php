@@ -35,13 +35,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/cart', [CartController::class, 'clear']);
     Route::get('/cart/summary', [CartController::class, 'summary']);
 
-    // Order routes
-    Route::get('/orders', [OrderController::class, 'index']);
-    Route::post('/orders', [OrderController::class, 'store']);
-    Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::put('/orders/{order}', [OrderController::class, 'update']);
-    Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
-
     // Order routes (all authenticated users can view their own orders)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
@@ -69,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/products/{id}/toggle-availability', [ProductController::class, 'toggleAvailability']);
 
         // Order management (admin only)
+        // Rute ini aman ditaruh di sini agar user biasa tidak bisa mengubah status pesanan sesuka hati
         Route::put('/orders/{id}', [OrderController::class, 'update']);
 
         // Order Items management (admin only)

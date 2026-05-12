@@ -2,27 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Cart extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'product_id',
-        'qty'
+        'quantity'
     ];
 
-    protected $casts = [
-        'qty' => 'integer',
-    ];
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function product(): BelongsTo
+    // Relasi untuk mengambil detail produk di dalam keranjang
+    public function product()
     {
         return $this->belongsTo(Product::class);
     }
