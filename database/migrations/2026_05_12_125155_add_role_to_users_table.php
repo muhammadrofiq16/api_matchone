@@ -9,8 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            // Mengecek agar tidak error jika kolom role sudah ada
             if (!Schema::hasColumn('users', 'role')) {
-                $table->string('role')->default('user')->after('email');
+                $table->string('role')->default('user')->after('password');
             }
         });
     }

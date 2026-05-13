@@ -5,8 +5,8 @@ use App\Http\Controllers\Web\AdminController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\UserController;
-// Tambahan import untuk Order Controller khusus Admin
-use App\Http\Controllers\Web\AdminOrderController; 
+use App\Http\Controllers\Web\AdminOrderController;
+use App\Http\Controllers\Web\AdminCartController; 
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +43,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     
     // Manajemen Pesanan via Web Admin
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-    Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
-    
+    Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show'); // Tambahan route detail
+    Route::put('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus'); // Ubah post ke put
+
+    // Manajemen Keranjang Belanja via Web Admin
+    Route::get('/carts', [AdminCartController::class, 'index'])->name('carts.index');
+    Route::delete('/carts/{id}', [AdminCartController::class, 'destroy'])->name('carts.destroy');
+    Route::delete('/carts/user/{userId}', [AdminCartController::class, 'clearUserCart'])->name('carts.clearUserCart');
+
 });
