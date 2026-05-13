@@ -7,10 +7,12 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController; // ← tambahan
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/google', [AuthController::class, 'googleLogin']); // ← tambahan: login via Google
 
 // Category routes (public - read only)
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -28,14 +30,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/auth/profile', [AuthController::class, 'update']);
 
     // Cart routes
+    Route::get('/cart/summary', [CartController::class, 'summary']); // ← dipindah ke atas agar tidak bentrok dengan /cart/{id}
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart', [CartController::class, 'store']);
     Route::put('/cart/{id}', [CartController::class, 'update']);
     Route::delete('/cart/{id}', [CartController::class, 'destroy']);
     Route::delete('/cart', [CartController::class, 'clear']);
-    Route::get('/cart/summary', [CartController::class, 'summary']);
 
-    // Order routes (all authenticated users can view their own orders)
+    // Checkout
+    Route::post('/checkout', [CheckoutController::class, 'store']);
+
+    // Order routes
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
@@ -62,7 +67,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/products/{id}/toggle-availability', [ProductController::class, 'toggleAvailability']);
 
         // Order management (admin only)
-        // Rute ini aman ditaruh di sini agar user biasa tidak bisa mengubah status pesanan sesuka hati
         Route::put('/orders/{id}', [OrderController::class, 'update']);
 
         // Order Items management (admin only)

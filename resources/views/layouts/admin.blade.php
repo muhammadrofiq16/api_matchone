@@ -18,6 +18,7 @@
             <a href="/admin/categories" class="block px-4 py-2 rounded hover:bg-gray-800 transition">🏷️ Kategori</a>
             <a href="/admin/products" class="block px-4 py-2 rounded hover:bg-gray-800 transition">🍵 Produk</a>
             <a href="/admin/users" class="block px-4 py-2 rounded hover:bg-gray-800 transition">👥 Users</a>
+            <a href="/admin/orders" class="block px-4 py-2 rounded hover:bg-gray-800 transition">📋 Pesanan</a>
         </nav>
         <div class="p-4 border-t border-gray-800 text-sm text-gray-400">
             © 2026 Muhammad Rofiq
