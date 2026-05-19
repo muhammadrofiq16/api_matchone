@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController; // ← tambahan
+use App\Http\Controllers\PaymentController; // ← payment controller
 
 // Public routes
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -53,6 +54,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'update']);
     Route::delete('/orders/{orderId}/items/{itemId}', [OrderItemController::class, 'destroy']);
 
+    // Payment routes (user)
+    Route::post('/payments', [PaymentController::class, 'store']); // Create payment with file upload
+    Route::get('/payments', [PaymentController::class, 'index']); // List all payments
+    Route::get('/payments/{payment}', [PaymentController::class, 'show']); // View payment details
+    Route::get('/orders/{order}/payment', [PaymentController::class, 'getByOrder']); // Get payment by order
+
     // Admin-only routes
     Route::middleware('admin')->group(function () {
         // Category management
@@ -71,5 +78,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Order Items management (admin only)
         Route::get('/order-items', [OrderItemController::class, 'allItems']);
+
+        // Payment management (admin only)
+        Route::put('/payments/{payment}/status', [PaymentController::class, 'updateStatus']); // Verify/reject payment
+        Route::delete('/payments/{payment}', [PaymentController::class, 'destroy']); // Delete payment
     });
 });
