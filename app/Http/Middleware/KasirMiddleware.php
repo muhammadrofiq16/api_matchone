@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class KasirMiddleware
 {
     /**
      * Handle an incoming request.
@@ -22,14 +22,14 @@ class AdminMiddleware
             return redirect()->route('login');
         }
 
-        if ($request->user()->role !== 'admin') {
+        if ($request->user()->role !== 'kasir') {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Unauthorized - Admin access required',
+                    'message' => 'Unauthorized - Kasir access required',
                     'current_role' => $request->user()->role
                 ], 403);
             }
-            return redirect()->route('login')->with('error', 'Akses ditolak. Anda bukan admin.');
+            return redirect()->route('login')->with('error', 'Akses ditolak. Anda bukan kasir.');
         }
 
         return $next($request);

@@ -46,9 +46,13 @@ class AdminController extends Controller
 
     public function showLogin()
     {
-        // Pastikan jika sudah login admin tidak perlu ke halaman login lagi
-        if (Auth::check() && Auth::user()->role === 'admin') {
-            return redirect()->route('admin.dashboard');
+        // Pastikan jika sudah login tidak perlu ke halaman login lagi
+        if (Auth::check()) {
+            if (Auth::user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } elseif (Auth::user()->role === 'kasir') {
+                return redirect()->route('kasir.dashboard');
+            }
         }
         return view('admin.login');
     }
@@ -65,14 +69,16 @@ class AdminController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // 3. Proteksi: Hanya role 'admin' yang boleh masuk ke Web Dashboard
+            // 3. Proteksi: Hanya role 'admin' atau 'kasir' yang boleh masuk ke Web Dashboard
             if (Auth::user()->role === 'admin') {
                 return redirect()->intended(route('admin.dashboard'));
+            } elseif (Auth::user()->role === 'kasir') {
+                return redirect()->intended(route('kasir.dashboard'));
             } else {
-                // Jika user biasa (Android) mencoba masuk, paksa logout
+                // Jika user biasa (customer) mencoba masuk, paksa logout
                 Auth::logout();
                 return back()->withErrors([
-                    'email' => 'Akses ditolak. Area ini khusus untuk Administrator Matchone.',
+                    'email' => 'Akses ditolak. Anda tidak memiliki akses ke halaman ini.',
                 ]);
             }
         }
