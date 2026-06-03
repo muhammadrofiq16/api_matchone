@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matchone Dashboard</title>
+    <title>Matchone Kasir</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
 <body class="bg-gray-100 font-sans antialiased flex h-screen">
@@ -17,48 +16,20 @@
 
         <nav class="flex-1 px-4 py-6 space-y-2">
 
-            {{-- MENU ADMIN --}}
-            @if(Auth::check() && Auth::user()->role === 'admin')
-                <a href="/admin/dashboard" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    📊 Dashboard
-                </a>
+            <a href="/kasir/dashboard" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
+                📊 Dashboard Kasir
+            </a>
 
-                <a href="/admin/categories" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    🏷️ Kategori
-                </a>
+            <a href="/kasir/pos" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
+                🧾 POS / Transaksi
+            </a>
 
-                <a href="/admin/products" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    🍵 Produk
-                </a>
-
-                <a href="/admin/users" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    👥 Users
-                </a>
-
-                <a href="/admin/orders" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    📋 Pesanan
-                </a>
-            @endif
-
-
-            {{-- MENU KASIR --}}
-            @if(Auth::check() && Auth::user()->role === 'kasir')
-                <a href="/kasir/dashboard" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    📊 Dashboard Kasir
-                </a>
-
-                <a href="/kasir/pos" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    🧾 POS / Transaksi
-                </a>
-
-                <a href="/kasir/orders" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
-                    📋 Pesanan
-                </a>
-            @endif
+            <a href="/kasir/orders" class="block px-4 py-2 rounded hover:bg-gray-800 transition">
+                📋 Pesanan
+            </a>
 
         </nav>
 
-        {{-- LOGOUT --}}
         <div class="px-4 pb-4">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
@@ -74,7 +45,6 @@
         </div>
     </aside>
 
-
     <main class="flex-1 flex flex-col overflow-hidden">
         <header class="h-16 bg-white shadow flex items-center justify-between px-6">
             <h2 class="text-xl font-semibold text-gray-800">
@@ -83,9 +53,7 @@
 
             <div class="flex items-center gap-4">
                 <div class="text-gray-600 font-medium">
-                    @if(Auth::check())
-                        {{ ucfirst(Auth::user()->role) }}
-                    @endif
+                    Kasir
                 </div>
 
                 <form action="{{ route('logout') }}" method="POST">

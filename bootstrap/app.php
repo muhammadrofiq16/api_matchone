@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => AdminMiddleware::class,
+            'kasir' => \App\Http\Middleware\KasirMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

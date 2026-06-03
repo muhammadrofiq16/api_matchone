@@ -12,7 +12,7 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'product_id',
-        'quantity'
+        'qty'
     ];
 
     // Relasi untuk mengambil detail produk di dalam keranjang
