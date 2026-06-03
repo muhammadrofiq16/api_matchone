@@ -3,121 +3,258 @@
 @section('header', 'Menu Kasir (POS)')
 
 @section('content')
-<div class="flex flex-col md:flex-row gap-6 h-full" x-data="posApp()">
-    <!-- Bagian Produk -->
-    <div class="w-full md:w-2/3 bg-white rounded-lg shadow flex flex-col h-[calc(100vh-120px)]">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h3 class="font-semibold text-gray-700">Pilih Produk</h3>
-            <input type="text" placeholder="Cari..." class="border rounded px-3 py-1 text-sm focus:outline-none focus:ring focus:border-green-300">
-        </div>
-        <div class="p-4 overflow-y-auto grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
-            @forelse($products as $product)
-            <div class="border rounded-lg p-3 cursor-pointer hover:shadow-md transition bg-gray-50 flex flex-col items-center text-center" @click="addToCart({{ $product->id }}, '{{ $product->name }}', {{ $product->price }})">
-                <img src="{{ $product->image ?? 'https://via.placeholder.com/100' }}" alt="{{ $product->name }}" class="w-20 h-20 object-cover rounded mb-2">
-                <h4 class="font-medium text-sm text-gray-800">{{ $product->name }}</h4>
-                <p class="text-green-600 font-bold text-sm mt-1">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-            </div>
-            @empty
-            <div class="col-span-full text-center text-gray-500 py-8">Belum ada produk tersedia.</div>
-            @endforelse
-        </div>
+
+@if(session('success'))
+    <div class="mb-4 p-4 rounded bg-green-100 text-green-700">
+        {{ session('success') }}
     </div>
+@endif
 
-    <!-- Bagian Keranjang / Order -->
-    <div class="w-full md:w-1/3 bg-white rounded-lg shadow flex flex-col h-[calc(100vh-120px)]">
-        <div class="p-4 border-b bg-gray-50 rounded-t-lg">
-            <h3 class="font-semibold text-gray-700">Keranjang Pesanan</h3>
-        </div>
-        
-        <div class="flex-1 overflow-y-auto p-4 bg-gray-50">
-            <template x-if="cart.length === 0">
-                <div class="text-center text-gray-400 py-10">Keranjang kosong.</div>
-            </template>
-            
-            <template x-for="(item, index) in cart" :key="index">
-                <div class="flex justify-between items-center mb-3 bg-white p-3 rounded shadow-sm">
-                    <div class="flex-1">
-                        <h4 class="text-sm font-medium" x-text="item.name"></h4>
-                        <div class="flex items-center mt-1">
-                            <button @click="decreaseQty(index)" class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-xs">-</button>
-                            <span class="mx-3 text-sm" x-text="item.qty"></span>
-                            <button @click="increaseQty(index)" class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-xs">+</button>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-sm font-bold text-gray-800" x-text="formatRupiah(item.price * item.qty)"></div>
-                        <button @click="removeItem(index)" class="text-red-500 text-xs mt-1 hover:underline">Hapus</button>
-                    </div>
+@if(session('error'))
+    <div class="mb-4 p-4 rounded bg-red-100 text-red-700">
+        {{ session('error') }}
+    </div>
+@endif
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    {{-- LIST PRODUK --}}
+    <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Pilih Produk</h3>
+
+       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+    @forelse($products as $product)
+        <div class="border rounded-xl p-4 hover:shadow-lg transition bg-white min-h-[360px] flex flex-col">
+
+            {{-- FOTO PRODUK CLOUDINARY --}}
+            @if(!empty($product->image))
+                <img src="{{ $product->image }}"
+                     alt="{{ $product->name }}"
+                     class="w-full h-56 object-cover rounded-xl mb-4 bg-gray-100">
+            @else
+                <div class="w-full h-56 bg-gray-200 rounded-xl mb-4 flex items-center justify-center text-gray-500 text-sm">
+                    Tidak ada foto
                 </div>
-            </template>
-        </div>
+            @endif
 
-        <div class="p-4 border-t bg-white rounded-b-lg">
-            <div class="flex justify-between mb-2">
-                <span class="text-gray-600">Total Item</span>
-                <span class="font-medium" x-text="totalItems()"></span>
-            </div>
-            <div class="flex justify-between mb-4 text-lg">
-                <span class="font-bold text-gray-800">Total Bayar</span>
-                <span class="font-bold text-green-600" x-text="formatRupiah(totalPrice())"></span>
-            </div>
-            
-            <button @click="processOrder()" :disabled="cart.length === 0" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Proses Pembayaran
+            <h4 class="font-semibold text-gray-800 text-base">
+                {{ $product->name }}
+            </h4>
+
+            <p class="text-sm text-gray-500 mb-2">
+                {{ $product->category->name ?? 'Tanpa kategori' }}
+            </p>
+
+            <p class="font-bold text-green-600 text-lg mb-4">
+                Rp {{ number_format($product->price, 0, ',', '.') }}
+            </p>
+
+            <button type="button"
+                class="btn-add-cart mt-auto w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                data-id="{{ $product->id }}"
+                data-name="{{ $product->name }}"
+                data-price="{{ $product->price }}">
+                Tambah
             </button>
         </div>
+    @empty
+        <p class="text-gray-500">
+            Belum ada produk tersedia.
+        </p>
+    @endforelse
+        </div>
     </div>
+
+
+    {{-- KERANJANG --}}
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Keranjang Pesanan</h3>
+
+        <div id="cart-items" class="space-y-3">
+            <p class="text-gray-500">Keranjang kosong.</p>
+        </div>
+
+        <div class="border-t mt-4 pt-4 space-y-2">
+            <div class="flex justify-between">
+                <span>Total Item</span>
+                <span id="total-item">0</span>
+            </div>
+
+            <div class="flex justify-between font-bold text-lg">
+                <span>Total Bayar</span>
+                <span id="total-price">Rp 0</span>
+            </div>
+        </div>
+
+        <form action="{{ route('kasir.pos.checkout') }}" method="POST" class="mt-6">
+            @csrf
+
+            <input type="hidden" name="cart" id="cart-input">
+
+            <label class="block text-sm font-medium mb-1">
+                Metode Pembayaran
+            </label>
+
+            <select name="payment_method" class="w-full border rounded px-3 py-2 mb-3">
+                <option value="cash">Cash</option>
+                <option value="qris">QRIS</option>
+                <option value="transfer">Transfer</option>
+            </select>
+
+            <label class="block text-sm font-medium mb-1">
+                Catatan
+            </label>
+
+            <textarea name="notes" class="w-full border rounded px-3 py-2 mb-3" rows="2"></textarea>
+
+            <button type="submit"
+                onclick="prepareCheckout(event)"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                Proses Pembayaran
+            </button>
+        </form>
+    </div>
+
 </div>
 
+
 <script>
-    function posApp() {
-        return {
-            cart: [],
-            
-            addToCart(id, name, price) {
-                const existing = this.cart.find(item => item.id === id);
-                if (existing) {
-                    existing.qty++;
-                } else {
-                    this.cart.push({ id, name, price, qty: 1 });
-                }
-            },
-            
-            increaseQty(index) {
-                this.cart[index].qty++;
-            },
-            
-            decreaseQty(index) {
-                if (this.cart[index].qty > 1) {
-                    this.cart[index].qty--;
-                } else {
-                    this.removeItem(index);
-                }
-            },
-            
-            removeItem(index) {
-                this.cart.splice(index, 1);
-            },
-            
-            totalItems() {
-                return this.cart.reduce((sum, item) => sum + item.qty, 0);
-            },
-            
-            totalPrice() {
-                return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            },
-            
-            formatRupiah(angka) {
-                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
-            },
-            
-            processOrder() {
-                if(this.cart.length === 0) return;
-                alert('Fitur proses pesanan Kasir belum dihubungkan ke backend (Checkout Controller).\nTotal Bayar: ' + this.formatRupiah(this.totalPrice()));
-                // Idealnya: Kirim data this.cart via fetch/axios ke backend untuk membuat Order
-                this.cart = [];
+    let cart = [];
+
+    function rupiah(number) {
+        return 'Rp ' + Number(number).toLocaleString('id-ID');
+    }
+
+    function addToCart(id, name, price) {
+        const existing = cart.find(item => item.id === id);
+
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            cart.push({
+                id: id,
+                name: name,
+                price: Number(price),
+                qty: 1
+            });
+        }
+
+        renderCart();
+    }
+
+    function increaseQty(id) {
+        const item = cart.find(item => item.id === id);
+
+        if (item) {
+            item.qty += 1;
+        }
+
+        renderCart();
+    }
+
+    function decreaseQty(id) {
+        const item = cart.find(item => item.id === id);
+
+        if (item) {
+            item.qty -= 1;
+
+            if (item.qty <= 0) {
+                cart = cart.filter(item => item.id !== id);
             }
         }
+
+        renderCart();
     }
+
+    function removeItem(id) {
+        cart = cart.filter(item => item.id !== id);
+        renderCart();
+    }
+
+    function renderCart() {
+        const cartItems = document.getElementById('cart-items');
+        const totalItem = document.getElementById('total-item');
+        const totalPrice = document.getElementById('total-price');
+
+        cartItems.innerHTML = '';
+
+        if (cart.length === 0) {
+            cartItems.innerHTML = '<p class="text-gray-500">Keranjang kosong.</p>';
+        }
+
+        let itemCount = 0;
+        let total = 0;
+
+        cart.forEach(item => {
+            itemCount += item.qty;
+            total += item.price * item.qty;
+
+            cartItems.innerHTML += `
+                <div class="border rounded p-3">
+                    <div class="font-semibold text-gray-800">
+                        ${item.name}
+                    </div>
+
+                    <div class="text-sm text-gray-500">
+                        ${rupiah(item.price)}
+                    </div>
+
+                    <div class="flex items-center justify-between mt-2">
+                        <div class="flex items-center gap-2">
+                            <button type="button"
+                                onclick="decreaseQty(${item.id})"
+                                class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded">
+                                -
+                            </button>
+
+                            <span class="font-semibold">
+                                ${item.qty}
+                            </span>
+
+                            <button type="button"
+                                onclick="increaseQty(${item.id})"
+                                class="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded">
+                                +
+                            </button>
+                        </div>
+
+                        <button type="button"
+                            onclick="removeItem(${item.id})"
+                            class="text-red-600 hover:text-red-800 text-sm">
+                            Hapus
+                        </button>
+                    </div>
+
+                    <div class="text-sm font-semibold text-right mt-2">
+                        Subtotal: ${rupiah(item.price * item.qty)}
+                    </div>
+                </div>
+            `;
+        });
+
+        totalItem.innerText = itemCount;
+        totalPrice.innerText = rupiah(total);
+    }
+
+    function prepareCheckout(event) {
+        if (cart.length === 0) {
+            event.preventDefault();
+            alert('Keranjang masih kosong.');
+            return;
+        }
+
+        document.getElementById('cart-input').value = JSON.stringify(cart);
+    }
+
+    document.querySelectorAll('.btn-add-cart').forEach(button => {
+        button.addEventListener('click', function () {
+            const id = Number(this.dataset.id);
+            const name = this.dataset.name;
+            const price = Number(this.dataset.price);
+
+            addToCart(id, name, price);
+        });
+    });
 </script>
+
 @endsection
